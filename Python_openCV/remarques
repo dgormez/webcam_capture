@@ -1,0 +1,9 @@
+Ce code fonctionne sous Linux et windows. 
+
+MAIS:
+
+Sous linux: pas possible de régler la résolution d'acquisition en python
+
+Sous windows: C'est possible. Frame rate de 2fps max. 
+
+ps: Je dispose d'une très bonne machine pour l'acqsuisition (intel core i7 _ 8core 2.5GHz; Nvidia GTX 860M; ssd;16GB RAM 1600MHz)

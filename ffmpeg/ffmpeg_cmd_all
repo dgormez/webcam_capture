@@ -1,0 +1,95 @@
+ffmpeg -f v4l2 -framerate 5 -video_size 1920x1080 -i /dev/video0 output0.mkv
+ffmpeg -f v4l2 -framerate 5 -video_size 1920x1080 -i /dev/video1 output1.mkv
+ffmpeg -f v4l2 -framerate 5 -video_size 1920x1080 -i /dev/video2 output2.mkv
+ffmpeg -f v4l2 -framerate 5 -video_size 1920x1080 -i /dev/video3 output3.mkv
+
+
+
+To install ffmpeg:
+
+sudo add-apt-repository ppa:kirillshkrogalev/ffmpeg-next
+sudo apt-­get update
+sudo apt­-get install ffmpeg
+
+To install v4l2: 
+
+sudo apt-get install v4l-utils
+
+Commande de base Acquisition flux compressé h264: 
+
+ffmpeg -f video4linux2 -input_format h264 -s 1920x1080 -i /dev/video0 -c:v copy output.mkv
+
+
+Pour acquisition du flux brut compressé en h264 sans output des warnings:
+
+ffmpeg -f video4linux2 -input_format h264 -video_size 1920x1080 -an -loglevel quiet  -i /dev/video1 -c:v copy output_i.mkv
+
+
+Test avec la gestion manuelle du frame rate: 
+
+
+ffmpeg -f video4linux2 -input_format h264 -framerate 15 -video_size 1920x1080 -an  -i /dev/video1 -c:v copy output_m.mkv
+
+Mais bug, la commande n'est pas prise en compte et les paramètres réglés par v4l2 sont écrasés.
+
+
+
+Pour segmenter les fichiers videos:
+
+-f segment -segment_time 600 space/meteors_%04d.mkv
+
+Test Avec mapping des entrées/sorties:
+
+ffmpeg 
+-f video4linux2 -input_format h264 -s 1920x1080 -i /dev/video0
+-f video4linux2 -input_format h264 -s 1920x1080 -i /dev/video1
+-f video4linux2 -input_format h264 -s 1920x1080 -i /dev/video2
+-f video4linux2 -input_format h264 -s 1920x1080 -i /dev/video3
+-map 0 -c:v copy output_0.mkv
+-map 1 -c:v copy output_1.mkv
+-map 2 -c:v copy output_2.mkv
+-map 3 -c:v copy output_4.mkv
+
+Test 2 stream dans 1 fichier mkv:
+
+ffmpeg  -f video4linux2 -input_format h264 -s 1920x1080 -i /dev/video0 -f video4linux2 -input_format h264 -s 1920x1080 -i /dev/video1 -map 0:v -c:v copy -map 1:v -c:v copy output_0and1.mkv 
+
+Cela fonctionne.
+
+Test Avec Segment sur flux simple:
+
+ffmpeg -f video4linux2 -input_format h264 -s 1920x1080 -i /dev/video1 -an -map 0:0 -f segment -segment_time 20 -c:v copy output_%4d.mkv
+
+Sans segment :
+
+ffmpeg -f video4linux2 -input_format h264 -s 1920x1080 -i /dev/video1 -an -map 0:0 -c:v copy output_%4d.mkv
+
+
+Tests pour régler le TimeStamp: Non fonctionnel:
+
+-vsync 0
+-ts abs  Pour avoir le wall clock
+
+Pour extraire les frames:
+ffmpeg -i output_TestSementation.mkv -r 5 -f image2 image-%3d.jpeg
+
+-> extraction de 5 img seconde à la résolution de la video.
+
+Pour présiser un temps de début d'extraction pour une certaine durée:
+
+ffmpeg -i inputfile.avi  -r 1 -t  40 -ss  01:30:14 image-%d.jpeg
+
+
+
+Pour calibrer la position de la caméra:
+
+vlc v4l2:///dev/video1:chroma=h264:width=1920:height=1080
+
+
+Modif des param de caméra:
+
+v4l2-ctl -d 1 -c focus_auto=0
+#v4l2-ctl -d 1 -c white_balance_temperature_auto=0
+#v4l2-ctl -d 1 -c exposure_auto_priority=0
+
+
